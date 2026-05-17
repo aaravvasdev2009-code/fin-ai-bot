@@ -120,41 +120,44 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
 
     # Process via Gemini Agent Engine
 with st.chat_message("assistant"):
-
-# LINE 125: Start replacing from here down to the end of the file!
-if user_input := st.chat_input("Ask FinAI..."):
+# LINE 122: Leave your 'with' statement exactly as it is in your file
+with st.sidebar: # (Or whatever your line 122 currently says!)
     
-    # Display and append the user's message immediately
-    with st.chat_message("user"):
-        st.write(user_input)
-    st.session_state.messages.append({"role": "user", "content": user_input})
+    # Everything below this line is now indented by 4 spaces to fix the error!
+    if user_input := st.chat_input("Ask FinAI..."):
+        
+        # Display and append the user's message immediately
+        with st.chat_message("user"):
+            st.write(user_input)
+        st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Trigger the assistant block
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing parameters..."):
-            
-            # Format the conversation history for Gemini's SDK
-            from google.genai import types
-            history = []
-            for msg in st.session_state.messages:
-                role = "model" if msg["role"] == "assistant" else "user"
-                history.append(
-                    types.Content(
-                        role=role,
-                        parts=[types.Part.from_text(text=msg["content"])]
+        # Trigger the assistant block
+        with st.chat_message("assistant"):
+            with st.spinner("Analyzing parameters..."):
+                
+                # Format the conversation history for Gemini's SDK
+                from google.genai import types
+                history = []
+                for msg in st.session_state.messages:
+                    role = "model" if msg["role"] == "assistant" else "user"
+                    history.append(
+                        types.Content(
+                            role=role,
+                            parts=[types.Part.from_text(text=msg["content"])]
+                        )
+                    )
+
+                # Call the model
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=history,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_rules,
+                        tools=financial_toolkit
                     )
                 )
-
-            # Call the model
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=history,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_rules,
-                    tools=financial_toolkit
-                )
-            )
-            
-            # Display and save the assistant's response at the very end
-            st.write(response.text)
+                
+                # Display and save the assistant's response at the very end
+                st.write(response.text)
+                st.session_state.messages.append({"role": "assistant", "content": response.text})
             st.session_state.messages.append({"role": "assistant", "content": response.text})
