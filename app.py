@@ -120,15 +120,15 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
         st.write(user_input)
 
     # Process via Gemini Agent Engine
-    with st.chat_message("assistant"):
-        with st.spinner("Analyzing parameters..."):
+with st.chat_message("assistant"):
+    with st.spinner("Analyzing parameters..."):
 
             
 # Convert session history to Gemini’s format securely
-history = []
-for msg in st.session_state.messages:
-    role = "model" if msg["role"] == "assistant" else "user"
-    history.append({"role": role, "parts": [{"text": msg["content"]}]})
+    history = []
+    for msg in st.session_state.messages:
+        role = "model" if msg["role"] == "assistant" else "user"
+        history.append({"role": role, "parts": [{"text": msg["content"]}]})
 
 # Call the model with full conversation history and toolkit enabled
     response = client.models.generate_content(
