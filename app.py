@@ -122,30 +122,40 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
 with st.chat_message("assistant"):
     with st.spinner("Analyzing parameters..."):
 
-            
-# 1. Convert session history to Gemini’s native SDK format securely
-        from google.genai import types
+# LINE 125: Start replacing from here down to the end of the file!
+if user_input := st.chat_input("Ask FinAI..."):
+    
+    # Display and append the user's message immediately
+    with st.chat_message("user"):
+        st.write(user_input)
+    st.session_state.messages.append({"role": "user", "content": user_input})
 
-        history = []
-        for msg in st.session_state.messages:
-            role = "model" if msg["role"] == "assistant" else "user"
-            history.append(
-                types.Content(
-                    role=role,
-                    parts=[types.Part.from_text(text=msg["content"])]
+    # Trigger the assistant block
+    with st.chat_message("assistant"):
+        with st.spinner("Analyzing parameters..."):
+            
+            # Format the conversation history for Gemini's SDK
+            from google.genai import types
+            history = []
+            for msg in st.session_state.messages:
+                role = "model" if msg["role"] == "assistant" else "user"
+                history.append(
+                    types.Content(
+                        role=role,
+                        parts=[types.Part.from_text(text=msg["content"])]
+                    )
+                )
+
+            # Call the model
+            response = client.models.generate_content(
+                model='gemini-2.5-flash',
+                contents=history,
+                config=types.GenerateContentConfig(
+                    system_instruction=system_rules,
+                    tools=financial_toolkit
                 )
             )
-
-        # 2. Call the model with full conversation history and toolkit enabled
-        response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=history, # This array now ends cleanly with the latest user text
-            config=types.GenerateContentConfig(
-                system_instruction=system_rules,
-                tools=financial_toolkit
-            )
-        )
             
-       # Print response text (Make sure these are indented inside the spinner block!)
-        st.write(response.text)
-        st.session_state.messages.append({"role": "model", "content": response.text})
+            # Display and save the assistant's response at the very end
+            st.write(response.text)
+            st.session_state.messages.append({"role": "assistant", "content": response.text})
