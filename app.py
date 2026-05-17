@@ -155,8 +155,8 @@ if user_input := st.chat_input("Ask FinAI..."):
                 )
             )
             
-            # Display and save the assistant's response at the very end
-            # Display and save the assistant's response at the very end
-       output_text = response.text if response.text else "No response text returned."
+          
+      # Display and save the assistant's response at the very end
+        output_text = response.text if response.text else "No response text returned."
         st.write(output_text)
         st.session_state.messages.append({"role": "assistant", "content": output_text})
