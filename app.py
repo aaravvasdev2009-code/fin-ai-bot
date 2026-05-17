@@ -3,19 +3,20 @@ import requests
 import yfinance as yf
 from google import genai
 from supabase import create_client, Client
-
-# =====================================================================
+# ==============================================================================
 # 1. CREDENTIAL CONFIGURATION
-# =====================================================================
-# In production, use streamlit secrets. For local drafts, fill these in:
-GEMINI_API_KEY = "AIzaSyAJ1pHcpsmmqRz0x9kRcphgSdIAbrnxj68"
-MARKETAUX_API_KEY = "bgTfBKWuFC8wGLyrHlbsHXHPArCsfHxB9oaUTjny"
-SUPABASE_URL = "https://mseuwppubfxhumjfwuwx.supabase.co/rest/v1/"
-SUPABASE_KEY = "sb_publishable_ualojox31CWranOTfNcIMw_N0Ibr6AU"
+# ==============================================================================
+# Pulled securely from Streamlit Secrets (Works perfectly online and locally)
+GEMINI_API_KEY = st.secrets["AIzaSyAJ1pHcpsmmqRz0x9kRcphgSdIAbrnxj68"]
+MARKETAUX_API_KEY = st.secrets["bgTfBKWuFC8wGLyrHlbsHXHPArCsfHxB9oaUTjny"]
+SUPABASE_URL = st.secrets["bgTfBKWuFC8wGLyrHlbsHXHPArCsfHxB9oaUTjny"]
+SUPABASE_KEY = st.secrets["b_publishable_ualojox31CWranOTfNcIMw_N0Ibr6AU"]
 
 # Initialize Clients
 client = genai.Client(api_key=GEMINI_API_KEY)
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
 
 # =====================================================================
 # 2. DEFINING THE AI AGENT TOOLS (PYTHON FUNCTIONS)
