@@ -125,21 +125,21 @@ with st.chat_message("assistant"):
 
             
 # Convert session history to Gemini’s format securely
-    history = []
-    for msg in st.session_state.messages:
-        role = "model" if msg["role"] == "assistant" else "user"
-        history.append({"role": role, "parts": [{"text": msg["content"]}]})
+        history = []
+        for msg in st.session_state.messages:
+            role = "model" if msg["role"] == "assistant" else "user"
+            history.append({"role": role, "parts": [{"text": msg["content"]}]})
 
 # Call the model with full conversation history and toolkit enabled
-    response = client.models.generate_content(
-        model='gemini-2.5-flash',
-        contents=history,  # Passing the entire history array
-        config={
-            "system_instruction": system_rules,
-            "tools": financial_toolkit
-        }
-    )
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=history,  # Passing the entire history array
+            config={
+                "system_instruction": system_rules,
+                "tools": financial_toolkit
+            }
+        )
             
             # Print response text
-    st.write(response.text)
-    st.session_state.messages.append({"role": "assistant", "content": response.text})
+        st.write(response.text)
+        st.session_state.messages.append({"role": "assistant", "content": response.text})
