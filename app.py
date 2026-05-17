@@ -110,22 +110,32 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
     with st.chat_message("assistant"):
         with st.spinner("Analyzing parameters..."):
             system_rules = (
-                "You are an elite, personal AI Financial Advisor. You are interacting with user ID 1 (Alex). "
-                "You have live access to tools that check accurate stock prices (yfinance), pull breaking news "
-                "(Marketaux), and write/read to a database containing their budget data (Supabase). "
-                "Always run the corresponding tool automatically if the user requests an interaction with data. "
-                "Be hyper-precise with financial figures. Always disclaim that this is not legal financial counsel."
-            )
+            "You are FinAI, a sharp and direct personal financial advisor for Alex (user ID 1). "
+            "Personality: concise, confident, never vague. "
+            "Rules: "
+            "1. Always use your tools automatically — never ask if you should look something up, just do it. "
+            "2. Before giving investment advice, consider Alex’s risk tolerance from their profile. "
+            "3. Format numbers clearly (e.g. $1,234.56). "
+            "4. End responses with a relevant follow-up question to keep Alex engaged. "
+            "5. Always add a one line disclaimer on investment advice. "
+            "6. If a question is outside finance, redirect politely."
+        )
             
-            # Call the model with automated function execution enabled via tools
-            response = client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=user_input,
-                config={
-                    "system_instruction": system_rules,
-                    "tools": financial_toolkit # Gemini calls your python functions seamlessly when needed
-                }
-            )
+# Convert session history to Gemini’s format securely
+history = []
+for msg in st.session_state.messages:
+    role = "model" if msg["role"] == "assistant" else "user"
+    history.append({"role": role, "parts": [{"text": msg["content"]}]})
+
+# Call the model with full conversation history and toolkit enabled
+response = client.models.generate_content(
+    model='gemini-2.5-flash',
+    contents=history,  # Passing the entire history array
+    config={
+        "system_instruction": system_rules,
+        "tools": financial_toolkit
+    }
+)
             
             # Print response text
             st.write(response.text)
