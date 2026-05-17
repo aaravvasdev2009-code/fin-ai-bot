@@ -6,16 +6,15 @@ from supabase import create_client, Client
 # ==============================================================================
 # 1. CREDENTIAL CONFIGURATION
 # ==============================================================================
-# Pulled securely from Streamlit Secrets (Works perfectly online and locally)
-GEMINI_API_KEY = st.secrets["AIzaSyAJ1pHcpsmmqRz0x9kRcphgSdIAbrnxj68"]
-MARKETAUX_API_KEY = st.secrets["bgTfBKWuFC8wGLyrHlbsHXHPArCsfHxB9oaUTjny"]
-SUPABASE_URL = st.secrets["bgTfBKWuFC8wGLyrHlbsHXHPArCsfHxB9oaUTjny"]
-SUPABASE_KEY = st.secrets["b_publishable_ualojox31CWranOTfNcIMw_N0Ibr6AU"]
+# Put the LABEL names in the brackets, not the actual long keys!
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+MARKETAUX_API_KEY = st.secrets["MARKETAUX_API_KEY"]
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 # Initialize Clients
 client = genai.Client(api_key=GEMINI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-
 
 
 # =====================================================================
