@@ -16,7 +16,20 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 client = genai.Client(api_key=GEMINI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-
+# ==========================================
+# SYSTEM CONFIGURATION (Put at the top of file)
+# ==========================================
+system_rules = (
+    "You are FinAI, a sharp and direct personal financial advisor for Alex (user ID 1). "
+    "Personality: concise, confident, never vague. "
+    "Rules: "
+    "1. Always use your tools automatically — never ask if you should look something up, just do it. "
+    "2. Before giving investment advice, consider Alex’s risk tolerance from their profile. "
+    "3. Format numbers clearly (e.g. $1,234.56). "
+    "4. End responses with a relevant follow-up question to keep Alex engaged. "
+    "5. Always add a one line disclaimer on investment advice. "
+    "6. If a question is outside finance, redirect politely."
+)
 # =====================================================================
 # 2. DEFINING THE AI AGENT TOOLS (PYTHON FUNCTIONS)
 # =====================================================================
@@ -109,17 +122,7 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
     # Process via Gemini Agent Engine
     with st.chat_message("assistant"):
         with st.spinner("Analyzing parameters..."):
-            system_rules = (
-            "You are FinAI, a sharp and direct personal financial advisor for Alex (user ID 1). "
-            "Personality: concise, confident, never vague. "
-            "Rules: "
-            "1. Always use your tools automatically — never ask if you should look something up, just do it. "
-            "2. Before giving investment advice, consider Alex’s risk tolerance from their profile. "
-            "3. Format numbers clearly (e.g. $1,234.56). "
-            "4. End responses with a relevant follow-up question to keep Alex engaged. "
-            "5. Always add a one line disclaimer on investment advice. "
-            "6. If a question is outside finance, redirect politely."
-        )
+
             
 # Convert session history to Gemini’s format securely
 history = []
