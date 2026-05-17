@@ -123,22 +123,31 @@ with st.chat_message("assistant"):
     with st.spinner("Analyzing parameters..."):
 
             
-# Convert session history to Gemini’s format securely
+# Convert session history to Gemini’s native SDK format securely
+        from google.genai import types
+
         history = []
         for msg in st.session_state.messages:
-            role = "model" if msg["role"] == "assistant" else "user"
-            history.append({"role": role, "parts": [{"text": msg["content"]}]})
+            role = "assistant" if msg["role"] == "assistant" else "user"
+            
+            # Using native SDK types ensures the server parses the schema perfectly
+            history.append(
+                types.Content(
+                    role=role,
+                    parts=[types.Part.from_text(text=msg["content"])]
+                )
+            )
 
 # Call the model with full conversation history and toolkit enabled
         response = client.models.generate_content(
             model='gemini-2.5-flash',
-            contents=history,  # Passing the entire history array
-            config={
-                "system_instruction": system_rules,
-                "tools": financial_toolkit
-            }
+            contents=history,
+            config=types.GenerateContentConfig(
+                system_instruction=system_rules,
+                tools=financial_toolkit
+            )
         )
             
-            # Print response text
+       # Print response text (Make sure these are indented inside the spinner block!)
         st.write(response.text)
         st.session_state.messages.append({"role": "assistant", "content": response.text})
