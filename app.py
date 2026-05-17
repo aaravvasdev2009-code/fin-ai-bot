@@ -2,11 +2,12 @@ import streamlit as st
 import requests
 import yfinance as yf
 from google import genai
+from google.genai import types  # Cleanly imported at the top
 from supabase import create_client, Client
+
 # ==============================================================================
 # 1. CREDENTIAL CONFIGURATION
 # ==============================================================================
-# Put the LABEL names in the brackets, not the actual long keys!
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 MARKETAUX_API_KEY = st.secrets["MARKETAUX_API_KEY"]
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
@@ -16,9 +17,7 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 client = genai.Client(api_key=GEMINI_API_KEY)
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# ==========================================
-# SYSTEM CONFIGURATION (Put at the top of file)
-# ==========================================
+# SYSTEM CONFIGURATION
 system_rules = (
     "You are FinAI, a sharp and direct personal financial advisor for Alex (user ID 1). "
     "Personality: concise, confident, never vague. "
@@ -30,6 +29,7 @@ system_rules = (
     "5. Always add a one line disclaimer on investment advice. "
     "6. If a question is outside finance, redirect politely."
 )
+
 # =====================================================================
 # 2. DEFINING THE AI AGENT TOOLS (PYTHON FUNCTIONS)
 # =====================================================================
@@ -55,7 +55,7 @@ def get_breaking_financial_news(search_query: str) -> str:
         response = requests.get(url).json()
         articles = response.get("data", [])
         output = ""
-        for art in articles[:3]: # Grab top 3 items
+        for art in articles[:3]: 
             output += f"Headline: {art['title']}\nSummary: {art['description']}\n\n"
         return output if output else "No fresh breaking news found for this topic."
     except Exception as e:
@@ -82,7 +82,6 @@ def view_user_budget(user_id: int = 1) -> str:
 def update_budget_expense(category: str, amount_spent: float, user_id: int = 1) -> str:
     """Adds a new expense or updates money spent inside an existing budget category."""
     try:
-        # Fetch current record
         res = supabase.table("budgets").select("spent_amount").eq("user_id", user_id).eq("category", category).execute()
         if not res.data:
             return f"No category named '{category}' found to update."
@@ -93,7 +92,7 @@ def update_budget_expense(category: str, amount_spent: float, user_id: int = 1) 
     except Exception as e:
         return f"Database write error: {str(e)}"
 
-# Pack all modules into a list that Gemini can look at natively
+# Pack modules into toolkit list
 financial_toolkit = [get_live_stock_price, get_breaking_financial_news, view_user_budget, update_budget_expense]
 
 # =====================================================================
@@ -105,23 +104,19 @@ st.caption("Real-Time Tracking, Budgeting, and Portfolio Personalization (Free T
 
 # Establish chat session container state
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "assistant", "content": "Hello! I am your unified tracking and budgeting assistant. Ask me to pull live stock prices, read breaking news, or inspect/update your personal budget dashboard."}]
+    st.session_state.messages = [
+        {
+            "role": "assistant", 
+            "content": "Hello! I am your unified tracking and budgeting assistant. Ask me to pull live stock prices, read breaking news, or inspect/update your personal budget dashboard."
+        }
+    ]
 
-# Print out conversation history
+# Print out conversation history cleanly
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-# Listen for User Prompts
-if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 spend to my Entertainment budget'"):
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.write(user_input)
-
-    # Process via Gemini Agent Engine
-# Delete your old line 122 container entirely. 
-# Paste this block so it sits flush against the left-hand wall of your file:
-
+# Listen for User Prompts (Single unified input channel)
 if user_input := st.chat_input("Ask FinAI..."):
     
     # Display and append the user's message immediately
@@ -129,34 +124,34 @@ if user_input := st.chat_input("Ask FinAI..."):
         st.write(user_input)
     st.session_state.messages.append({"role": "user", "content": user_input})
 
-    # Trigger the assistant block
+    # Trigger the assistant generation block
     with st.chat_message("assistant"):
         with st.spinner("Analyzing parameters..."):
             
-            # Format the conversation history for Gemini's SDK
-            from google.genai import types
+            # Format the conversation history for the dynamic raw SDK structure
             history = []
             for msg in st.session_state.messages:
                 role = "model" if msg["role"] == "assistant" else "user"
-                history.append(
-                    types.Content(
-                        role=role,
-                        parts=[types.Part.from_text(text=msg["content"])]
+                history.append({
+                    "role": role,
+                    "parts": [{"text": msg["content"]}]
+                })
+
+            try:
+                # Call the model with properly initialized configs and tools
+                response = client.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=history,
+                    config=types.GenerateContentConfig(
+                        system_instruction=system_rules,
+                        tools=financial_toolkit
                     )
                 )
-
-            # Call the model
-            response = client.models.generate_content(
-                model='gemini-2.0-flash',
-                contents=history,
-                config=types.GenerateContentConfig(
-                    system_instruction=system_rules,
-                    tools=financial_toolkit
-                )
-            )
-            
-          
-      # Display and save the assistant's response at the very end
-        output_text = response.text if response.text else "No response text returned."
-        st.write(output_text)
-        st.session_state.messages.append({"role": "assistant", "content": output_text})
+                
+                # Extract and display response text safely
+                output_text = response.text if response.text else "No response text returned."
+                st.write(output_text)
+                st.session_state.messages.append({"role": "assistant", "content": output_text})
+                
+            except Exception as api_err:
+                st.error(f"Gemini API Engine Error: {str(api_err)}")
