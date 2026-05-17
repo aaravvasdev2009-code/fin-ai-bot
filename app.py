@@ -128,16 +128,15 @@ with st.chat_message("assistant"):
 
         history = []
         for msg in st.session_state.messages:
-            role = "assistant" if msg["role"] == "assistant" else "user"
+            # FIX: Change "assistant" back to "model" to make the backend validator happy!
+            role = "model" if msg["role"] == "assistant" else "user"
             
-            # Using native SDK types ensures the server parses the schema perfectly
             history.append(
                 types.Content(
                     role=role,
                     parts=[types.Part.from_text(text=msg["content"])]
                 )
             )
-
 # Call the model with full conversation history and toolkit enabled
         response = client.models.generate_content(
             model='gemini-2.5-flash',
@@ -150,4 +149,4 @@ with st.chat_message("assistant"):
             
        # Print response text (Make sure these are indented inside the spinner block!)
         st.write(response.text)
-        st.session_state.messages.append({"role": "assistant", "content": response.text})
+        st.session_state.messages.append({"role": "model", "content": response.text})
