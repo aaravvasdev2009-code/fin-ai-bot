@@ -120,7 +120,6 @@ if user_input := st.chat_input("Ex: 'What is Nvidia trading at?' or 'Log a $25 s
 
     # Process via Gemini Agent Engine
 with st.chat_message("assistant"):
-    with st.spinner("Analyzing parameters..."):
 
 # LINE 125: Start replacing from here down to the end of the file!
 if user_input := st.chat_input("Ask FinAI..."):
