@@ -37,7 +37,6 @@ system_rules = (
 def get_live_stock_price(ticker: str) -> str:
     """Fetches real-time market data, current price, and key ratios for a given stock ticker."""
     try:
-        import yfinance as yf
         stock = yf.Ticker(ticker)
         history = stock.history(period="1d")
         if history.empty:
